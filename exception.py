@@ -28,3 +28,8 @@ class IdError(Exception):
 
     def __str__(self):
         return "It seems that there is no an id key in your json.Check it up!"
+
+class HttpMethodError(Exception):
+
+    def __str__(self):
+        return "Now stated http method"
