@@ -7,35 +7,40 @@ from .core import BaseAPIData
 class APIModifiedData(BaseAPIData):
     """
     This class is a main one beetween user and 'BaseClass'
-    Here you can get data and update it 
-    
+    Here you can get data and update it
+
     """
 
-    def get_data(self,get_params:dict = None,filters: dict =None) -> dict:
+    def get_data(self, get_params:dict = None, filters: dict =None) -> dict:
         """Returns the result of GET method without pk"""
 
-        return super().get_data(params=get_params,filters=filters)        
+        return super().get_data(params=get_params,filters=filters)
 
 
-    def update_data(self,json_dict: dict,params: dict = None, filters: dict = None) -> dict:
+    def update_data(self, json_data: dict, params: dict = None, filters: dict = None) -> dict:
         """
         Firstly updates data using written 'put_params'
         and after calls data method to return json of new data
         PUD:
-        It is better to write the same id of element you wanna get 
+        It is better to write the same id of element you wanna get
         to get an appropriate result.
 
         """
 
-        super().update_data(json_data=json_dict,params=params,filters=filters,patch_req=True)
+        super().update_data(json_data=json_data,params=params,filters=filters,patch_req=True)
         return super().get_data(params=params,filters=filters)
+
+    def create_entry(self, data:dict = None, files:dict = None) -> bool:
+        """Method for the creating a new entry"""
+
+        return super().create_data(data=data, files=files)
 
 
     def get_and_update_json(self,get_params: dict = None,json_data: dict = None, filters: dict = None,put_method:bool = False, patch_method:bool = False) -> dict:
         """
-        It returns data and updates it using gotten id 
+        It returns data and updates it using gotten id
         and calling update_date method putting all the
-        important parrams  
+        important parrams
 
         """
 
@@ -50,7 +55,8 @@ class APIModifiedData(BaseAPIData):
             return data
         except KeyError:
             raise IdError
-        
+
+
 
 class APIDefaultSetting(APIModifiedData):
     """This class configures params for the futher work"""
@@ -62,6 +68,7 @@ class APIDefaultSetting(APIModifiedData):
     post = None
     auth_data = None
     content_type = "json"
+    user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0'
 
 class RJAPI(APIDefaultSetting):
     """This one validates new-made params for 'APIDefaultSetting'"""
@@ -90,4 +97,3 @@ class RJAPI(APIDefaultSetting):
                 cls.auth_data = cls.Meta.auth_data
         except AttributeError:
             raise AttributeError("You haven't passed Meta class or written wrong attributes")
-
