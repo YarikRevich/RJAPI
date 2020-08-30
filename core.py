@@ -77,7 +77,7 @@ class BaseAPIData(Utils):
 
         if data:
             pars = self._get_params(params, filters)
-            self._POST_request(params=pars, files=files, json_data=data)
+            data_post = self._POST_request(params=pars, files=files, json_data=data)
         return False
 
 
