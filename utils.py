@@ -51,7 +51,7 @@ class Utils:
         """
 
         def _sub_GET_request(url: str) -> object:
-            """A sub func which does a request"""
+            """A sub func which does a get request"""
 
             try:
                 return requests.get(
@@ -74,7 +74,7 @@ class Utils:
         """
 
         def _sub_PUT_request(url: str) -> object:
-            """A sub func which does a request"""
+            """A sub func which does a put request"""
 
             try:
                 return requests.put(
@@ -99,7 +99,7 @@ class Utils:
         """
 
         def _sub_PATCH_request(url: str) -> object:
-            """A sub func which does a request"""
+            """A sub func which does a patch request"""
 
             try:
                 return requests.patch(
@@ -124,7 +124,7 @@ class Utils:
         """
 
         def _sub_POST_request(url: str) -> object:
-            """A sub func which does a request"""
+            """A sub func which does a post request"""
 
             try:
                 return requests.post(
@@ -141,3 +141,23 @@ class Utils:
         if self.url is not None:
             return _sub_POST_request(self.url)
         return _sub_POST_request(self.post)
+
+
+    def _DELETE_request(self, params: dict = None) -> None:
+        """A helpful method to make a delete request"""
+
+        def _sub_DELETE_request(url: str) -> object:
+            """A sub func which does a delete request"""
+
+            try:
+                return requests.delete(
+                    url + (params if params else ""),
+                    auth = (self.auth_data if hasattr(self, "auth_data") else None),
+                    headers={"User-Agent":self.user_agent})
+            except ConnectionError:
+                time.sleep(.1)
+                return _sub_DELETE_request(url)
+
+        if self.url is not None:
+            return _sub_DELETE_request(self.url)
+        return _sub_DELETE_request(self.delete)

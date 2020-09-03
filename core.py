@@ -80,6 +80,15 @@ class BaseAPIData(Utils):
             data_post = self._POST_request(params=pars, files=files, json_data=data)
         return False
 
+    def delete_data(self, params:dict = None, filters: dict = None) -> None:
+        """Deletes entry gotten by params or filters"""
+
+        if self.url != None and self.delete != None:
+            raise SettingsError
+
+        pars = self._get_params(params, filters)
+        self._DELETE_request(params=pars)
+
 
     def __repr__(self):
         return "%s" % (self.__class__)

@@ -17,7 +17,7 @@ class APIModifiedData(BaseAPIData):
         return super().get_data(params=get_params,filters=filters)
 
 
-    def update_data(self, json_data: dict, params: dict = None, filters: dict = None) -> dict:
+    def update_data(self, json_data: dict = None, params: dict = None, filters: dict = None, files: dict = None) -> dict:
         """
         Firstly updates data using written 'put_params'
         and after calls data method to return json of new data
@@ -27,7 +27,7 @@ class APIModifiedData(BaseAPIData):
 
         """
 
-        super().update_data(json_data=json_data,params=params,filters=filters,patch_req=True)
+        super().update_data(json_data=json_data,params=params,filters=filters,patch_req=True, files=files)
         return super().get_data(params=params,filters=filters)
 
     def create_entry(self, data:dict = None, files:dict = None) -> bool:
