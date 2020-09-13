@@ -16,7 +16,7 @@ class BaseAPIData(Utils):
 
     """
 
-    def get_data(self,params: dict = None,filters: dict = None) -> dict:
+    async def get_data(self,params: dict = None,filters: dict = None) -> dict:
         """Returns the list of gotten data.Can take such params as:
         -> params (to get an equal entry)
         -> filters (to filter an important entry)
@@ -25,14 +25,14 @@ class BaseAPIData(Utils):
         if self.url != None and self.get != None:
             raise SettingsError
 
-        pars = self._get_params(params, filters)
-        data = self._GET_request(params=pars)
-        if data.status_code != 200:
+        pars = await self._get_params(params, filters)
+        data, status_code = await self._GET_request(params=pars)
+        if status_code != 200:
             raise URLStatusCodeError
-        return data.json()
+        return data
 
 
-    def update_data(self, json_data: dict,params: dict = None, filters:dict = None, files:dict = None,put_req: bool = False, patch_req: bool = False) -> None:
+    async def update_data(self, json_data: dict,params: dict = None, filters:dict = None, files:dict = None,put_req: bool = False, patch_req: bool = False) -> None:
         """Updates data.Can take such params as:
         -> json-data
         -> params (to get an equal entry to update)
@@ -47,26 +47,25 @@ class BaseAPIData(Utils):
 
         if self.url != None or self.put != None:
 
-            pars = self._get_params(params, filters)
+            pars = await self._get_params(params, filters)
 
             if self.content_type == "json":
                 if patch_req:
-                    new_data = self._PATCH_request(params=pars, files=files,json_data=json_data)
+                    data, status_code = await self._PATCH_request(params=pars, files=files,json_data=json_data)
                 elif put_req:
-                    new_data = self._PUT_request(params=pars, files=files,json_data=json_data)   
+                    data, status_code = await self._PUT_request(params=pars, files=files,json_data=json_data)   
                 else:
                     raise HttpMethodError
             else:
                 raise ContentTypeError
-            
-            if new_data.status_code != 200:
+            if status_code != 200:
                 raise InvalidDataError
             return None
 
         raise UpdateDataError
 
 
-    def create_data(self, params:dict = None, filters:dict = None, data:dict = None, files: dict = None) -> bool:
+    async def create_data(self, params:dict = None, filters:dict = None, data:dict = None, files: dict = None) -> bool:
         """Creates new entry.Can take such params as:
         -> json-data
         -> files
@@ -75,20 +74,27 @@ class BaseAPIData(Utils):
         if self.url != None and self.post != None:
             raise SettingsError
 
-        if data:
-            pars = self._get_params(params, filters)
-            data_post = self._POST_request(params=pars, files=files, json_data=data)
+        if data or files:
+            pars = await self._get_params(params, filters)
+            data, status_code = await self._POST_request(params=pars, files=files, json_data=data)
+            if status_code != 201:
+                return False
+            return True
         return False
 
-    def delete_data(self, params:dict = None, filters: dict = None) -> None:
+
+    async def delete_data(self, params:dict = None, filters: dict = None) -> None:
         """Deletes entry gotten by params or filters"""
 
         if self.url != None and self.delete != None:
             raise SettingsError
 
-        pars = self._get_params(params, filters)
-        self._DELETE_request(params=pars)
-
+        pars = await self._get_params(params, filters)
+        status_code = await self._DELETE_request(params=pars)
+        if status_code != 204:
+            return False
+        return True
+        
 
     def __repr__(self):
         return "%s" % (self.__class__)

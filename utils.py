@@ -1,6 +1,10 @@
 import requests
+import aiohttp
+import asyncio
+from aiohttp.client_exceptions import ClientConnectionError
+from aiohttp import FormData
 from requests.exceptions import ConnectionError
-import time
+
 
 
 class Utils:
@@ -10,14 +14,14 @@ class Utils:
     """
 
     @staticmethod
-    def _get_params(params: dict, filters: dict) -> str:
+    async def _get_params(params: dict, filters: dict) -> str:
         """
         Checks whether there are any params
         If they do,returns them
 
         """
 
-        def get_param_string() -> str:
+        async def get_param_string() -> str:
             """Returns the str which contains all the entered parrams"""
 
             pars = ""
@@ -28,7 +32,7 @@ class Utils:
             return pars
             
 
-        def get_filter_string(param_string: str = "") -> str:
+        async def get_filter_string(param_string: str = "") -> str:
             """Returns the str which contains all the parrams and filters"""
             
             param_string += "?"
@@ -39,125 +43,154 @@ class Utils:
             return param_string
 
 
-        param_string = get_param_string()
+        param_string = await get_param_string()
         if filters:
-            return get_filter_string(param_string)
+            return await get_filter_string(param_string)
         return param_string
 
 
-    def _GET_request(self, params: dict = None) -> object:
+    async def _GET_request(self, params: dict = None) -> object:
         """Does GET request to the url or get attributes which contain
         urls to communicate with API
         """
 
-        def _sub_GET_request(url: str) -> object:
+        async def _sub_GET_request(url: str) -> object:
             """A sub func which does a get request"""
 
-            try:
-                return requests.get(
-                    url + (params if params is not None else ""),
-                    auth=(self.auth_data if hasattr(self, "auth_data") else None),
-                    headers={"User-Agent":self.user_agent})
-            except ConnectionError:
-                time.sleep(.1)
-                return _sub_GET_request(url)
-
+            
+            async with aiohttp.ClientSession(
+                auth=aiohttp.BasicAuth(
+                    self.auth_data[0], self.auth_data[1] if hasattr(self, "auth_data") else None
+                    ),
+                headers={"User-Agent":self.user_agent}
+                ) as session:
+                async with session.get(url + (params if params is not None else "")) as response:
+                    
+                    return (await response.json(), response.status)
+                    
 
         if self.url is not None:
-            return _sub_GET_request(self.url)
-        return _sub_GET_request(self.get)
+            return await _sub_GET_request(self.url)
+        return await _sub_GET_request(self.get)
 
     
-    def _PUT_request(self, params: dict = None, files: dict = None, json_data: dict = None) -> object:
+    async def _PUT_request(self, params: dict = None, files: dict = None, json_data: dict = None) -> object:
         """Does PUT request to the url or put attributes which contain
         urls to communicate with API
         """
 
-        def _sub_PUT_request(url: str) -> object:
+        async def _sub_PUT_request(url: str) -> object:
             """A sub func which does a put request"""
 
-            try:
-                return requests.put(
+            async with aiohttp.ClientSession(
+                auth=aiohttp.BasicAuth(
+                    self.auth_data[0], self.auth_data[1] if hasattr(self, "auth_data") else None
+                    ),
+                headers={"User-Agent":self.user_agent}
+                ) as session:
+                async with session.put(
                     url + (params if params else ""),
-                    auth = (self.auth_data if hasattr(self, "auth_data") else None),
-                    files = (files if files else None),
-                    json = (json_data if json_data else None),
-                    headers={"User-Agent":self.user_agent})
-            except ConnectionError:
-                time.sleep(.1)
-                return _sub_PUT_request(url)
-
+                    data=(files if files else json_data if json_data else None)    
+                ) as response:
+                    return (await response.json(), response.status)
+                    
 
         if self.url is not None:
-            return _sub_PUT_request(self.url)
-        return _sub_PUT_request(self.put)
+            return await _sub_PUT_request(self.url)
+        return await _sub_PUT_request(self.put)
 
     
-    def _PATCH_request(self, params: dict = None, files:dict = None, json_data: dict = None) -> object:
+    async def _PATCH_request(self, params: dict = None, files:dict = None, json_data: dict = None) -> object:
         """Does PATCH request to the url or patch attributes which contain
         urls to communicate with API
         """
 
-        def _sub_PATCH_request(url: str) -> object:
+        async def _sub_PATCH_request(url: str) -> object:
             """A sub func which does a patch request"""
 
-            try:
-                return requests.patch(
+            
+            async with aiohttp.ClientSession(
+                auth=aiohttp.BasicAuth(
+                    self.auth_data[0], self.auth_data[1] if hasattr(self, "auth_data") else None
+                    ),
+                headers={"User-Agent":self.user_agent}
+                ) as session:
+                async with session.patch(
                     url + (params if params else ""),
-                    auth = (self.auth_data if hasattr(self, "auth_data") else None),
-                    files = (files if files else None),
-                    json = (json_data if json_data else None),
-                    headers={"User-Agent":self.user_agent})
-            except ConnectionError:
-                time.sleep(.1)
-                return _sub_PATCH_request(url)
+                    data=(files if files else json_data if json_data else None)
+                ) as response:
+                    return (await response.json(), response.status)
 
-
+                    
         if self.url is not None:
-            return _sub_PATCH_request(self.url)
-        return _sub_PATCH_request(self.patch)
+            return await _sub_PATCH_request(self.url)
+        return await _sub_PATCH_request(self.patch)
 
 
-    def _POST_request(self, params: dict = None, files: dict = None, json_data: dict = None) -> object:
+    async def _POST_request(self, params: dict = None, files: dict = None, json_data: dict = None) -> object:
         """Does POST request to the url or post attributes which contain
         urls to communicate with API
         """
 
-        def _sub_POST_request(url: str) -> object:
+        async def _sub_POST_request(url: str) -> object:
             """A sub func which does a post request"""
 
-            try:
-                return requests.post(
-                    url + (params if params else ""),
-                    auth = (self.auth_data if hasattr(self, "auth_data") else None),
-                    files = (files if files else None),
-                    data = (json_data if json_data else None),
-                    headers={"User-Agent":self.user_agent})
-            except ConnectionError:
-                time.sleep(.1)
-                return _sub_POST_request(url)
+            async def form_all_data():
+                """Forms both image and json data for the uploading"""
 
+                data = FormData()
+                for key, item in json_data.items():
+                    data.add_field(name=key, value=item, content_type="application/json")
+                for key, item in files.items():
+                    data.add_field(name=key, value=item[1], filename=item[0], content_type="multipart/form-data")
+                return data
+
+          
+            async def form_image():
+                """Forms image for the uploading"""
+
+                data = FormData()
+                for file_name in files:
+                    data.add_field("visit_image", value=files[file_name][1], filename=files[file_name][0], content_type="multipart/form-data")
+                return data
+
+            
+            async with aiohttp.ClientSession(
+                auth=aiohttp.BasicAuth(
+                    self.auth_data[0], self.auth_data[1] if hasattr(self, "auth_data") else None
+                    ),
+                headers={"User-Agent":self.user_agent}
+                ) as session:
+                async with session.post(
+                    url + (params if params else ""),
+                    data=await form_all_data() if (files and json_data) else json_data if json_data else await form_image() if files else None
+                ) as response:
+                    return (await response.json(), response.status)
+            
 
         if self.url is not None:
-            return _sub_POST_request(self.url)
-        return _sub_POST_request(self.post)
+            return await _sub_POST_request(self.url)
+        return await _sub_POST_request(self.post)
 
 
-    def _DELETE_request(self, params: dict = None) -> None:
+    async def _DELETE_request(self, params: dict = None) -> None:
         """A helpful method to make a delete request"""
 
-        def _sub_DELETE_request(url: str) -> object:
+        async def _sub_DELETE_request(url: str) -> object:
             """A sub func which does a delete request"""
 
-            try:
-                return requests.delete(
-                    url + (params if params else ""),
-                    auth = (self.auth_data if hasattr(self, "auth_data") else None),
-                    headers={"User-Agent":self.user_agent})
-            except ConnectionError:
-                time.sleep(.1)
-                return _sub_DELETE_request(url)
+            async with aiohttp.ClientSession(
+                auth=aiohttp.BasicAuth(
+                    self.auth_data[0], self.auth_data[1] if hasattr(self, "auth_data") else None
+                    ),
+                headers={"User-Agent":self.user_agent}
+                ) as session:
+                async with session.delete(
+                    url + (params if params else "")
+                ) as response:
+                    return response.status
 
+            
         if self.url is not None:
-            return _sub_DELETE_request(self.url)
-        return _sub_DELETE_request(self.delete)
+            return await _sub_DELETE_request(self.url)
+        return await _sub_DELETE_request(self.delete)

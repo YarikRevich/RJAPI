@@ -1,4 +1,5 @@
 import requests
+import asyncio
 from .exception import UpdateDataError,URLStatusCodeError,InvalidDataError,ContentTypeError,IdError,HttpMethodError
 from .utils import Utils
 from .core import BaseAPIData
@@ -11,13 +12,13 @@ class APIModifiedData(BaseAPIData):
 
     """
 
-    def get_data(self, get_params:dict = None, filters: dict =None) -> dict:
+    async def get_data(self, get_params:dict = None, filters: dict =None) -> dict:
         """Returns the result of GET method without pk"""
 
-        return super().get_data(params=get_params,filters=filters)
+        return await super().get_data(params=get_params,filters=filters)
 
 
-    def update_data(self, json_data: dict = None, params: dict = None, filters: dict = None, files: dict = None) -> dict:
+    async def update_data(self, json_data: dict = None, params: dict = None, filters: dict = None, files: dict = None) -> dict:
         """
         Firstly updates data using written 'put_params'
         and after calls data method to return json of new data
@@ -27,16 +28,17 @@ class APIModifiedData(BaseAPIData):
 
         """
 
-        super().update_data(json_data=json_data,params=params,filters=filters,patch_req=True, files=files)
-        return super().get_data(params=params,filters=filters)
+        await super().update_data(json_data=json_data,params=params,filters=filters,patch_req=True, files=files)
+        return await super().get_data(params=params,filters=filters)
 
-    def create_entry(self, data:dict = None, files:dict = None) -> bool:
+
+    async def create_entry(self, data:dict = None, files:dict = None) -> bool:
         """Method for the creating a new entry"""
 
-        return super().create_data(data=data, files=files)
+        return await super().create_data(data=data, files=files)
 
 
-    def get_and_update_json(self,get_params: dict = None,json_data: dict = None, filters: dict = None,put_method:bool = False, patch_method:bool = False) -> dict:
+    async def get_and_update_json(self,get_params: dict = None,json_data: dict = None, filters: dict = None,put_method:bool = False, patch_method:bool = False) -> dict:
         """
         It returns data and updates it using gotten id
         and calling update_date method putting all the
@@ -44,18 +46,20 @@ class APIModifiedData(BaseAPIData):
 
         """
 
-        data = super().get_data(params=get_params,filters=filters)
+        data = await super().get_data(params=get_params,filters=filters)
         try:
-            pks = [element["id"] for element in data["results"]]
+            if len(data) > 1:
+                pks = [element["id"] for element in data["results"]]
+            else:
+                pks = [element["id"] for element in data]
             for index in pks:
                 if put_method:
-                    super().update_data(json_data=json_data,params={"pk":index},filters=filters,put_req=True)
+                    await super().update_data(json_data=json_data,params={"pk":index},filters=filters,put_req=True)
                 else:
-                    super().update_data(json_data=json_data,params={"pk":index},filters=filters,patch_req=True)
+                    await super().update_data(json_data=json_data,params={"pk":index},filters=filters,patch_req=True)
             return data
         except KeyError:
             raise IdError
-
 
 
 class APIDefaultSetting(APIModifiedData):
@@ -69,6 +73,7 @@ class APIDefaultSetting(APIModifiedData):
     auth_data = None
     content_type = "json"
     user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0'
+
 
 class RJAPI(APIDefaultSetting):
     """This one validates new-made params for 'APIDefaultSetting'"""
