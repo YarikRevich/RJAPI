@@ -6,6 +6,8 @@ from .exception import (UpdateDataError,
                         ContentTypeError,
                         InvalidDataError,
                         HttpMethodError)
+                        
+__version__ = 1.0
 
 
 class BaseAPIData(Utils):
@@ -27,8 +29,9 @@ class BaseAPIData(Utils):
 
         pars = await self._get_params(params, filters)
         data, status_code = await self._GET_request(params=pars)
+
         if status_code != 200:
-            raise URLStatusCodeError
+           raise URLStatusCodeError
         return data
 
 
