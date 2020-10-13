@@ -48,9 +48,9 @@ class APIModifiedData(BaseAPIData):
 
         data = await super().get_data(params=get_params,filters=filters)
         try:
-            if len(data) > 1:
+            try:
                 pks = [element["id"] for element in data["results"]]
-            else:
+            except TypeError:
                 pks = [element["id"] for element in data]
             for index in pks:
                 if put_method:
